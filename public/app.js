@@ -7,10 +7,12 @@
     markets: [],
     stalls: [],
     filtered: [],
+    page: 1,
+    pageSize: 24,
     favorites: new Set(),
     view: "markets",
-    token: localStorage.getItem("pazar-radar-token") || "",
-    user: JSON.parse(localStorage.getItem("pazar-radar-user") || "null"),
+    token: localStorage.getItem("street-bazaars-token") || "",
+    user: JSON.parse(localStorage.getItem("street-bazaars-user") || "null"),
     authMode: "login",
     apiAvailable: false,
     offlineCached: false,
@@ -46,7 +48,7 @@
     const response = await fetch(url, { ...options, headers });
     const type = response.headers.get("content-type") || "";
     const body = type.includes("application/json") ? await response.json() : {};
-    if (response.headers.get("X-Pazar-Radar-Cache") === "stale-offline") {
+    if (response.headers.get("X-Street-Bazaars-Cache") === "stale-offline") {
       state.offlineCached = true;
     } else if (response.ok && (url.startsWith("/api/pazar") || url.startsWith("/api/tezgah"))) {
       state.offlineCached = false;
@@ -101,7 +103,16 @@
         api("/api/tezgah?limit=100&page=1").catch(() => ({ data: [] })),
         api("/api/health").catch(() => ({ status: "offline" })),
       ]);
-      state.markets = Array.isArray(marketsResult.data) ? marketsResult.data : [];
+      const totalPages = Math.min(100, Math.max(1, Number(marketsResult.totalPages) || 1));
+      const remainingPages = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, index) =>
+          api("/api/pazar?limit=100&page=" + (index + 2)).catch(() => ({ data: [] })),
+        ),
+      );
+      state.markets = [
+        ...(Array.isArray(marketsResult.data) ? marketsResult.data : []),
+        ...remainingPages.flatMap((page) => (Array.isArray(page.data) ? page.data : [])),
+      ];
       state.stalls = Array.isArray(stallsResult.data) ? stallsResult.data : [];
       const healthy = healthResult.status === "ok";
       state.apiAvailable = healthy && !state.offlineCached;
@@ -207,6 +218,12 @@
     state.filtered = list;
     const pricesView = state.view === "prices";
     const mapView = state.view === "map";
+    const pageCount = Math.max(1, Math.ceil(list.length / state.pageSize));
+    state.page = Math.min(state.page, pageCount);
+    $("#market-pagination").classList.toggle(
+      "hidden",
+      mapView || pricesView || list.length <= state.pageSize,
+    );
     $("#market-map-panel").classList.toggle("hidden", !mapView);
     $("#market-grid").classList.toggle("hidden", mapView);
     $("#market-section").classList.toggle("prices-mode", pricesView);
@@ -260,9 +277,38 @@
       $("#market-grid").innerHTML = renderPrices();
       return;
     }
-    $("#market-grid").innerHTML = list.map(renderMarketCard).join("");
+    const start = (state.page - 1) * state.pageSize;
+    $("#market-grid").innerHTML = list.slice(start, start + state.pageSize).map(renderMarketCard).join("");
     if (!list.length) $("#market-grid").innerHTML = "";
+    renderPagination(list.length);
     renderStats();
+  }
+
+  function renderPagination(total) {
+    const node = $("#market-pagination");
+    const pageCount = Math.max(1, Math.ceil(total / state.pageSize));
+    if (pageCount <= 1) {
+      node.classList.add("hidden");
+      node.innerHTML = "";
+      return;
+    }
+    node.classList.remove("hidden");
+    node.innerHTML =
+      '<button class="button button-secondary pagination-button" data-page="' +
+      Math.max(1, state.page - 1) +
+      '"' +
+      (state.page === 1 ? " disabled" : "") +
+      '>← Önceki</button><span class="pagination-label">Sayfa ' +
+      state.page +
+      " / " +
+      pageCount +
+      " · " +
+      total +
+      ' pazar</span><button class="button button-secondary pagination-button" data-page="' +
+      Math.min(pageCount, state.page + 1) +
+      '"' +
+      (state.page === pageCount ? " disabled" : "") +
+      '>Sonraki →</button>';
   }
 
   function renderMarketCard(market) {
@@ -580,8 +626,8 @@
       }
       state.token = result.token;
       state.user = result.user;
-      localStorage.setItem("pazar-radar-token", state.token);
-      localStorage.setItem("pazar-radar-user", JSON.stringify(state.user));
+      localStorage.setItem("street-bazaars-token", state.token);
+      localStorage.setItem("street-bazaars-user", JSON.stringify(state.user));
       updateAccount();
       await loadFavorites();
       render();
@@ -605,8 +651,8 @@
     state.token = "";
     state.user = null;
     state.favorites.clear();
-    localStorage.removeItem("pazar-radar-token");
-    localStorage.removeItem("pazar-radar-user");
+    localStorage.removeItem("street-bazaars-token");
+    localStorage.removeItem("street-bazaars-user");
     updateAccount();
     renderStats();
     render();
@@ -625,12 +671,18 @@
       toast("Favori listen için giriş yap.");
     }
   }
+  function applyFilters() {
+    state.page = 1;
+    render();
+  }
+
   function resetFilters() {
     $("#search-input").value = "";
     $("#district-filter").value = "";
     $("#day-filter").value = "";
     $("#type-filter").value = "";
     $("#sort-filter").value = "name";
+    state.page = 1;
     render();
   }
 
@@ -648,11 +700,18 @@
     changeView("markets");
     $("#market-section").scrollIntoView({ behavior: "smooth" });
   });
-  $("#search-input").addEventListener("input", render);
-  $("#district-filter").addEventListener("change", render);
-  $("#day-filter").addEventListener("change", render);
-  $("#type-filter").addEventListener("change", render);
-  $("#sort-filter").addEventListener("change", render);
+  $("#search-input").addEventListener("input", applyFilters);
+  $("#district-filter").addEventListener("change", applyFilters);
+  $("#day-filter").addEventListener("change", applyFilters);
+  $("#type-filter").addEventListener("change", applyFilters);
+  $("#sort-filter").addEventListener("change", applyFilters);
+  $("#market-pagination").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-page]");
+    if (!button || button.disabled) return;
+    state.page = Number(button.dataset.page) || 1;
+    render();
+    $("#market-section").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   $("#clear-filters").addEventListener("click", resetFilters);
   $("#empty-reset").addEventListener("click", resetFilters);
   $("#retry-btn").addEventListener("click", loadData);
