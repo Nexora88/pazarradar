@@ -1,4 +1,4 @@
-# Pazar Radar
+# Street Bazaars
 
 İstanbul semt pazarlarını keşfetmek, pazar günlerini ve adreslerini görmek, esnaf tezgâhlarındaki ürün fiyatlarını takip etmek ve toplulukla fiyatları doğrulamak için geliştirilen mobil uyumlu web uygulaması.
 
@@ -209,3 +209,24 @@ Bu bilgiler yoksa otomatik deploy çalışmaz. Hiçbir gizli anahtar depoya comm
 - MongoDB hesabına yalnızca gerekli veritabanı izinlerini ver.
 - Üretim veritabanında test çalıştırma; CI ve entegrasyon testleri için ayrı bir test veritabanı kullan.
 - Pazar ve fiyatlar topluluk/esnaf bildirimlerine dayanır; oy sayısı tek başına resmi doğrulama anlamına gelmez.
+
+
+## İstanbul veri paketi
+
+İlk bölge yalnızca İstanbul'dur. Resmî T.C. Ticaret Bakanlığı Hal Kayıt Sistemi listesinden 538 pazar kaydı içeren `data/istanbul-markets.json` snapshot'ı oluşturulur. Ad, ilçe, semt, adres ve kuruluş günleri kaynak kayıtlarından alınır. Kaynakta bulunmayan koordinatlar ve ürün fiyatları uydurulmaz.
+
+- Kaynak: https://www.hal.gov.tr/Sayfalar/Pazar-Yerleri.aspx?sid=34
+- `npm run data:sync:istanbul`: Resmî kaynaktan snapshot'ı yeniler (internet gerekir).
+- `npm run data:seed`: Snapshot'ı MongoDB'ye aktarır (harici kaynak bağlantısı gerektirmez).
+- GitHub Actions veri iş akışı push sonrasında ve haftalık olarak snapshot'ı yeniler.
+
+## Docker ile hızlı başlangıç
+
+1. `.env.example` dosyasını `.env` olarak kopyala ve `JWT_SECRET` değerini rastgele, uzun bir değerle değiştir.
+2. Windows'ta `start-street-bazaars.bat` dosyasını çalıştır veya terminalde `docker compose up --build -d` komutunu kullan.
+3. `http://localhost:3000` adresini aç. Docker Compose MongoDB'yi başlatır, verileri yerel snapshot'tan yükler ve veritabanını kalıcı volume'da saklar.
+4. Durdurmak için `docker compose down`; verileri de silmek için ayrıca volume silme işlemi gerekir.
+
+## İndirilebilir paket
+
+Kaynak kodu GitHub deposunda **Code → Download ZIP** yoluyla indirebilirsin. CI iş akışı ayrıca Actions sayfasında indirilebilir `street-bazaars-source` ZIP çıktısı üretir. Uygulama PWA olarak desteklenen tarayıcılarda yüklenebilir.
