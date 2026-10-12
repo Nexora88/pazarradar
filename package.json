@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate:geo": "node scripts/migrate-geo.js",
-    "check": "node --check server.js && node --check config/db.js && node --check config/cache.js && node --check routes/auth.js && node --check routes/pazar.js && node --check routes/tezgah.js && node --check routes/upload.js && node --check middleware/auth.js && node --check middleware/admin.js && node --check middleware/esnaf.js && node --check middleware/denetci.js && node --check models/Pazar.js && node --check models/Tezgah.js && node --check models/User.js && node --check scripts/migrate-geo.js && node --check public/app.js && node --check public/sw.js",
+    "check": "node --check server.js && node --check config/db.js && node --check config/cache.js && node --check routes/auth.js && node --check routes/pazar.js && node --check routes/tezgah.js && node --check routes/upload.js && node --check middleware/auth.js && node --check middleware/admin.js && node --check middleware/esnaf.js && node --check middleware/denetci.js && node --check models/Pazar.js && node --check models/Tezgah.js && node --check models/User.js && node --check scripts/migrate-geo.js && node --check scripts/sync-istanbul-markets.js && node --check scripts/seed-istanbul.js && node --check public/app.js && node --check public/sw.js",
     "test": "npm run check && node --test",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{js,cjs,json,md,html,css,yml,yaml,webmanifest}\"",
