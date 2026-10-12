@@ -92,7 +92,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: String(user._id), username: user.username, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d", issuer: "pazar-radar" },
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d", issuer: "street-bazaars" },
     );
     res.json({ success: true, message: "Giriş başarılı.", token, user: publicUser(user) });
   } catch (error) {
