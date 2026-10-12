@@ -72,7 +72,7 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Yüklenecek bir görsel seçin." });
     }
-    const result = await uploadImage(req.file.buffer, "pazar-radar/profil");
+    const result = await uploadImage(req.file.buffer, "street-bazaars/profil");
     await User.findByIdAndUpdate(req.user.id, { profilFoto: result.secure_url });
     res.json({ success: true, image: result.secure_url });
   }),
@@ -90,7 +90,7 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Yüklenecek bir görsel seçin." });
     }
-    const result = await uploadImage(req.file.buffer, "pazar-radar/tezgah");
+    const result = await uploadImage(req.file.buffer, "street-bazaars/tezgah");
     res.json({ success: true, image: result.secure_url });
   }),
 );
@@ -106,7 +106,7 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Yüklenecek bir görsel seçin." });
     }
-    const result = await uploadImage(req.file.buffer, "pazar-radar/yorum");
+    const result = await uploadImage(req.file.buffer, "street-bazaars/yorum");
     res.json({ success: true, image: result.secure_url });
   }),
 );
@@ -123,7 +123,7 @@ router.post(
     if (!req.file) {
       return res.status(400).json({ success: false, message: "Yüklenecek bir görsel seçin." });
     }
-    const result = await uploadImage(req.file.buffer, "pazar-radar/urun");
+    const result = await uploadImage(req.file.buffer, "street-bazaars/urun");
     res.json({ success: true, image: result.secure_url });
   }),
 );
