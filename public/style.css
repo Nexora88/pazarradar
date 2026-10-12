@@ -1677,3 +1677,6 @@ h1 span {
     width: 100%;
   }
 }
+
+
+.market-pagination{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;margin:24px 0 8px}.market-pagination.hidden{display:none}.pagination-label{color:var(--muted,#aab7ad);font-size:.88rem;font-weight:600}.pagination-button:disabled{opacity:.42;cursor:not-allowed}.source-note{margin:12px 0 18px;max-width:980px;color:var(--muted,#aab7ad);font-size:.78rem;line-height:1.65}.source-note a{color:var(--green,#b9f66a);text-decoration:underline;text-underline-offset:3px}@media(max-width:520px){.market-pagination{gap:8px}.pagination-label{order:-1;width:100%;text-align:center}}
