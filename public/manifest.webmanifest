@@ -1,6 +1,6 @@
 {
-  "name": "Pazar Radar",
-  "short_name": "Pazar Radar",
+  "name": "Street Bazaars",
+  "short_name": "Street Bazaars",
   "description": "İstanbul semt pazarlarını keşfet ve fiyatları karşılaştır.",
   "lang": "tr-TR",
   "start_url": "/",
