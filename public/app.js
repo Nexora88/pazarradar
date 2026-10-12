@@ -19,6 +19,7 @@
     toastTimer: null,
     map: null,
     mapLayer: null,
+    mapMarkets: null,
   };
   const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
   const escapeHtml = (value) =>
@@ -239,7 +240,11 @@
       $$(".nav-item").forEach((button) =>
         button.classList.toggle("active", button.dataset.view === state.view),
       );
-      renderMap(list);
+      const mapMarkets = state.mapMarkets || list;
+      $("#section-title").innerHTML =
+        'Pazar haritası <span class="heading-count">' + mapMarkets.length + "</span>";
+      $("#results-summary").textContent = mapMarkets.length + " pazar harita görünümünde";
+      renderMap(mapMarkets);
       return;
     }
     $("#section-title").innerHTML =
@@ -661,6 +666,7 @@
   }
   function changeView(view) {
     state.view = view;
+    if (view !== "map") state.mapMarkets = null;
     render();
     (view === "map" ? $("#market-map-panel") : $("#market-section")).scrollIntoView({
       behavior: "smooth",
@@ -781,7 +787,7 @@
               encodeURIComponent(longitude) +
               "&radius=10000",
           );
-          state.markets = Array.isArray(result.data) ? result.data : [];
+          state.mapMarkets = Array.isArray(result.data) ? result.data : [];
           state.view = "map";
           populateDistricts();
           renderStats();
