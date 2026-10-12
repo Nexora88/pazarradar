@@ -80,7 +80,7 @@ test(
       const token = jwt.sign(
         { id: String(user._id), username: user.username, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "5m", issuer: "pazar-radar" },
+        { expiresIn: "5m", issuer: "street-bazaars" },
       );
       const productId = stall.urunler[0]._id;
       const voteUrl = `${base}/api/tezgah/${stall._id}/urun/${productId}/oy`;
