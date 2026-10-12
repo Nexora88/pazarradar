@@ -53,14 +53,17 @@ app.use(helmet({
     }
   }
 }));
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error("Bu kaynaktan erişime izin verilmiyor."));
-  },
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  maxAge: 86400
+app.use(cors((req, callback) => {
+  const origin = req.get("Origin");
+  const ownOrigin = req.get("host") ? `${req.protocol}://${req.get("host")}` : "";
+  const allowed = !origin || origin === ownOrigin || allowedOrigins.includes(origin) ||
+    (!allowedOrigins.length && process.env.NODE_ENV !== "production");
+  callback(null, {
+    origin: allowed,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400
+  });
 }));
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));

@@ -13,7 +13,7 @@ const safeError = (res, error) => {
   console.error("[pazar]", error?.message || error);
   return res.status(500).json({ success: false, message: "İşlem sırasında sunucu hatası oluştu." });
 };
-const escapeRegex = value => String(value).slice(0, 80).replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+const escapeRegex = value => String(value).slice(0, 80).replace(/[.*+?^{}$()|[\]\\]/g, "\\$&");
 const allowedFields = ["ad","il","ilce","mahalle","adres","gunler","saatler","konum","fotograflar","aciklama","ortalamaPuan","toplamYorum","fiyatEndeksi","aktif"];
 const pick = (body, fields = allowedFields) => Object.fromEntries(fields.filter(key => body?.[key] !== undefined).map(key => [key, body[key]]));
 
