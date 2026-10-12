@@ -55,7 +55,12 @@ function parseOfficialTable(html) {
     );
     if (cells.length < 7) continue;
     const [name, type, address, city, district, neighborhood, dayText] = cells;
-    if (normalize(city).toLocaleLowerCase("tr-TR") !== "istanbul" || !name || !district || !address) {
+    if (
+      normalize(city).toLocaleLowerCase("tr-TR") !== "istanbul" ||
+      !name ||
+      !district ||
+      !address
+    ) {
       continue;
     }
     const gunler = [
