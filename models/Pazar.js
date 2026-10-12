@@ -3,8 +3,18 @@ const mongoose = require("mongoose");
 const PazarSchema = new mongoose.Schema(
   {
     ad: { type: String, required: true, trim: true, maxlength: 140 },
-    il: { type: String, default: "İstanbul", trim: true, maxlength: 80 },
+    il: { type: String, enum: ["İstanbul"], default: "İstanbul", trim: true, maxlength: 80 },
     ilce: { type: String, required: true, trim: true, maxlength: 80, index: true },
+    sourceKey: { type: String, trim: true, unique: true, sparse: true },
+    tur: { type: String, default: "Semt Pazarı", trim: true, maxlength: 80 },
+    kaynak: { type: String, default: "", trim: true, maxlength: 160 },
+    kaynakUrl: { type: String, default: "", trim: true, maxlength: 2048 },
+    kaynakGuncelleme: { type: Date },
+    koordinatDurumu: {
+      type: String,
+      enum: ["kaynakta-yok", "dogrulandi"],
+      default: "kaynakta-yok",
+    },
     mahalle: { type: String, default: "", trim: true, maxlength: 120 },
     adres: { type: String, required: true, trim: true, maxlength: 300 },
     gunler: {
