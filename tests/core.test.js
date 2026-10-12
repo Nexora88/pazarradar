@@ -70,7 +70,7 @@ test("uygulama sağlık ucu veritabanı bağlantısı yokken bile yanıt verir",
     const response = await fetch(`http://127.0.0.1:${address.port}/api/health`);
     const body = await response.json();
     assert.ok([200, 503].includes(response.status));
-    assert.equal(body.app, "Pazar Radar");
+    assert.equal(body.app, "Street Bazaars");
     assert.ok(
       ["connected", "disconnected", "connecting", "disconnecting", "unknown"].includes(
         body.database,
