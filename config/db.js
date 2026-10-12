@@ -7,7 +7,7 @@ async function connectDB() {
   mongoose.set("strictQuery", true);
   await mongoose.connect(uri, {
     serverSelectionTimeoutMS: Number(process.env.DB_TIMEOUT_MS) || 10000,
-    autoIndex: process.env.NODE_ENV !== "production"
+    autoIndex: process.env.NODE_ENV !== "production",
   });
   console.info("[database] MongoDB bağlantısı hazır.");
   return mongoose.connection;

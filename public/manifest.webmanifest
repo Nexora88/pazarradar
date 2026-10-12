@@ -1,0 +1,14 @@
+{
+  "name": "Pazar Radar",
+  "short_name": "Pazar Radar",
+  "description": "İstanbul semt pazarlarını keşfet ve fiyatları karşılaştır.",
+  "lang": "tr-TR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101b16",
+  "theme_color": "#101b16",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

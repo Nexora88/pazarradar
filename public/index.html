@@ -1,103 +1,370 @@
 <!doctype html>
 <html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101b16">
-  <meta name="description" content="İstanbul semt pazarlarını keşfet, pazar günlerini öğren ve güncel ürün fiyatlarını karşılaştır.">
-  <title>Pazar Radar — Şehrin pazarı avucunda</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <script defer src="/app.js"></script>
-</head>
-<body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <a class="brand" href="/" aria-label="Pazar Radar ana sayfa">
-        <span class="brand-mark"><svg viewBox="0 0 44 44" aria-hidden="true"><path d="M8 19h28l-3 17H11L8 19Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M6 16 10 7h24l4 9M6 16c0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="m18 28 3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span class="brand-copy"><strong>Pazar<span>Radar</span></strong><small>İSTANBUL REHBERİ</small></span>
-      </a>
-      <div class="sidebar-label">KEŞFET</div>
-      <nav class="main-nav" aria-label="Ana menü">
-        <button class="nav-item active" data-view="markets"><span class="nav-icon">⌖</span><span>Pazarları keşfet</span><span class="nav-arrow">↗</span></button>
-        <button class="nav-item" data-view="prices"><span class="nav-icon">↗</span><span>Fiyat radarı</span></button>
-        <button class="nav-item" data-view="saved"><span class="nav-icon">♡</span><span>Favorilerim</span></button>
-      </nav>
-      <div class="sidebar-label explore-label">PAZAR RADAR</div>
-      <div class="sidebar-note"><span class="note-orb">✳</span><div><strong>Mahalleni keşfet</strong><p>Yakınındaki pazarları bul, alışverişini planla.</p></div></div>
-      <div class="sidebar-bottom"><span class="live-dot"></span><span id="connection-label">Sunucu kontrol ediliyor</span><button id="refresh-btn" class="icon-button" aria-label="Verileri yenile" title="Verileri yenile">↻</button></div>
-    </aside>
-
-    <main class="main-area">
-      <header class="topbar">
-        <button id="menu-toggle" class="icon-button menu-toggle" aria-label="Menüyü aç">☰</button>
-        <div class="breadcrumb"><span>İstanbul</span><span class="crumb-slash">/</span><strong id="breadcrumb-current">Pazarları keşfet</strong></div>
-        <div class="topbar-actions"><span class="today-chip"><span class="tiny-dot"></span><span id="today-label">Bugün</span></span><button id="account-btn" class="account-button"><span class="account-avatar">👤</span><span id="account-label">Giriş yap</span></button></div>
-      </header>
-
-      <section class="content">
-        <div class="hero">
-          <div class="hero-copy">
-            <div class="eyebrow"><span class="eyebrow-line"></span> ŞEHRİN NABZI BURADA</div>
-            <h1>İstanbul'un pazarını<br><span>yakından tanı.</span></h1>
-            <p>Semt pazarlarını keşfet, pazar günlerini öğren ve alışverişten önce fiyatları karşılaştır.</p>
-            <div class="hero-actions"><button class="button button-primary" id="explore-btn">Pazarları keşfet <span>↗</span></button><button class="button button-quiet" data-view="prices">Fiyatları incele <span>→</span></button></div>
-          </div>
-          <div class="hero-art" aria-hidden="true">
-            <div class="art-grid"></div><div class="art-sun"></div>
-            <div class="art-bag"><div class="bag-handle"></div><div class="bag-body"><span class="produce p1">●</span><span class="produce p2">●</span><span class="produce p3">●</span><span class="produce p4">●</span><span class="produce p5">●</span><span class="bag-leaf">⌁</span></div></div>
-            <div class="floating-tag tag-top"><span class="tag-icon">✳</span><span><b>Mahalle mahalle</b><small>Keşfetmeye hazır</small></span></div>
-            <div class="floating-tag tag-bottom"><span class="tag-check">✓</span><span><b>Akıllı alışveriş</b><small>Tek yerde, kolayca</small></span></div>
-            <div class="art-caption">YERELİN GÜCÜ <span>✳</span></div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101b16" />
+    <meta
+      name="description"
+      content="İstanbul semt pazarlarını keşfet, pazar günlerini öğren ve güncel ürün fiyatlarını karşılaştır."
+    />
+    <title>Pazar Radar — Şehrin pazarı avucunda</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/style.css" />
+    <script
+      defer
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="/" aria-label="Pazar Radar ana sayfa">
+          <span class="brand-mark"
+            ><svg viewBox="0 0 44 44" aria-hidden="true">
+              <path
+                d="M8 19h28l-3 17H11L8 19Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M6 16 10 7h24l4 9M6 16c0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0 0 3 5 3 5 0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="m18 28 3 3 6-7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              /></svg
+          ></span>
+          <span class="brand-copy"
+            ><strong>Pazar<span>Radar</span></strong
+            ><small>İSTANBUL REHBERİ</small></span
+          >
+        </a>
+        <div class="sidebar-label">KEŞFET</div>
+        <nav class="main-nav" aria-label="Ana menü">
+          <button class="nav-item active" data-view="markets">
+            <span class="nav-icon">⌖</span><span>Pazarları keşfet</span
+            ><span class="nav-arrow">↗</span>
+          </button>
+          <button class="nav-item" data-view="prices">
+            <span class="nav-icon">↗</span><span>Fiyat radarı</span>
+          </button>
+          <button class="nav-item" data-view="map">
+            <span class="nav-icon">⌖</span><span>Pazar haritası</span>
+          </button>
+          <button class="nav-item" data-view="saved">
+            <span class="nav-icon">♡</span><span>Favorilerim</span>
+          </button>
+        </nav>
+        <div class="sidebar-label explore-label">PAZAR RADAR</div>
+        <div class="sidebar-note">
+          <span class="note-orb">✳</span>
+          <div>
+            <strong>Mahalleni keşfet</strong>
+            <p>Yakınındaki pazarları bul, alışverişini planla.</p>
           </div>
         </div>
-
-        <div class="stats-grid" aria-label="Pazar istatistikleri">
-          <article class="stat-card"><span class="stat-icon mint">⌖</span><div><span class="stat-label">Listelenen pazar</span><strong id="stat-markets">—</strong><small id="stat-markets-note">Veriler yükleniyor</small></div><span class="stat-spark">⌁</span></article>
-          <article class="stat-card"><span class="stat-icon amber">▦</span><div><span class="stat-label">Tezgâh</span><strong id="stat-stalls">—</strong><small>Platformdaki kayıtlar</small></div><span class="stat-spark amber-spark">⌁</span></article>
-          <article class="stat-card"><span class="stat-icon blue">₺</span><div><span class="stat-label">Fiyat takibi</span><strong id="stat-products">—</strong><small>Paylaşılan ürün fiyatı</small></div><span class="stat-spark blue-spark">⌁</span></article>
-          <article class="stat-card"><span class="stat-icon rose">♡</span><div><span class="stat-label">Kişisel listen</span><strong id="stat-saved">0</strong><small>Favorilerine ekle</small></div><span class="stat-spark rose-spark">⌁</span></article>
+        <div class="sidebar-bottom">
+          <span class="live-dot"></span><span id="connection-label">Sunucu kontrol ediliyor</span
+          ><button
+            id="refresh-btn"
+            class="icon-button"
+            aria-label="Verileri yenile"
+            title="Verileri yenile"
+          >
+            ↻
+          </button>
         </div>
+      </aside>
 
-        <section class="section-block" id="market-section">
-          <div class="section-heading"><div><div class="eyebrow small-eyebrow">SENİN İÇİN SEÇTİK</div><h2 id="section-title">Pazarları keşfet <span class="heading-count" id="result-count">—</span></h2><p id="section-description">İstanbul'un semt pazarlarını tek ekranda keşfet.</p></div><button class="text-button" id="clear-filters">Filtreleri temizle <span>↺</span></button></div>
-          <div class="filter-panel">
-            <label class="search-box"><span>⌕</span><input id="search-input" type="search" placeholder="Pazar, ilçe veya mahalle ara..." autocomplete="off"><kbd>⌘ K</kbd></label>
-            <label class="filter-select"><span>İlçe</span><select id="district-filter"><option value="">Tüm ilçeler</option></select></label>
-            <label class="filter-select"><span>Kurulduğu gün</span><select id="day-filter"><option value="">Tüm günler</option><option>Pazartesi</option><option>Salı</option><option>Çarşamba</option><option>Perşembe</option><option>Cuma</option><option>Cumartesi</option><option>Pazar</option></select></label>
+      <main class="main-area">
+        <header class="topbar">
+          <button id="menu-toggle" class="icon-button menu-toggle" aria-label="Menüyü aç">
+            ☰
+          </button>
+          <div class="breadcrumb">
+            <span>İstanbul</span><span class="crumb-slash">/</span
+            ><strong id="breadcrumb-current">Pazarları keşfet</strong>
           </div>
-          <div class="results-toolbar"><span id="results-summary">Pazar kayıtları yükleniyor…</span><label class="sort-control">Sırala <select id="sort-filter"><option value="name">İsme göre</option><option value="rating">Puana göre</option><option value="district">İlçeye göre</option></select></label></div>
-          <div id="market-grid" class="market-grid"><div class="loading-card"><span class="loader"></span><strong>Pazarlar yükleniyor</strong><p>Güncel kayıtlar sunucudan alınıyor.</p></div></div>
-          <div id="empty-state" class="empty-state hidden"><span>⌕</span><h3>Aramana uygun pazar bulamadık</h3><p>Filtreleri değiştirebilir veya aramanı kısaltabilirsin.</p><button class="button button-primary" id="empty-reset">Filtreleri sıfırla</button></div>
-          <div class="load-error hidden" id="load-error"><strong>Verilere şu an ulaşılamıyor.</strong><span>Sunucu ve MongoDB bağlantısını kontrol et. Gerçek kayıtlar gelmeden örnek verileri gerçekmiş gibi göstermiyoruz.</span><button class="button button-secondary" id="retry-btn">Tekrar dene</button></div>
+          <div class="topbar-actions">
+            <span class="today-chip"
+              ><span class="tiny-dot"></span><span id="today-label">Bugün</span></span
+            ><button id="account-btn" class="account-button">
+              <span class="account-avatar">👤</span><span id="account-label">Giriş yap</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="hero">
+            <div class="hero-copy">
+              <div class="eyebrow"><span class="eyebrow-line"></span> ŞEHRİN NABZI BURADA</div>
+              <h1>İstanbul'un pazarını<br /><span>yakından tanı.</span></h1>
+              <p>
+                Semt pazarlarını keşfet, pazar günlerini öğren ve alışverişten önce fiyatları
+                karşılaştır.
+              </p>
+              <div class="hero-actions">
+                <button class="button button-primary" id="explore-btn">
+                  Pazarları keşfet <span>↗</span></button
+                ><button class="button button-quiet" data-view="prices">
+                  Fiyatları incele <span>→</span>
+                </button>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <div class="art-grid"></div>
+              <div class="art-sun"></div>
+              <div class="art-bag">
+                <div class="bag-handle"></div>
+                <div class="bag-body">
+                  <span class="produce p1">●</span><span class="produce p2">●</span
+                  ><span class="produce p3">●</span><span class="produce p4">●</span
+                  ><span class="produce p5">●</span><span class="bag-leaf">⌁</span>
+                </div>
+              </div>
+              <div class="floating-tag tag-top">
+                <span class="tag-icon">✳</span
+                ><span><b>Mahalle mahalle</b><small>Keşfetmeye hazır</small></span>
+              </div>
+              <div class="floating-tag tag-bottom">
+                <span class="tag-check">✓</span
+                ><span><b>Akıllı alışveriş</b><small>Tek yerde, kolayca</small></span>
+              </div>
+              <div class="art-caption">YERELİN GÜCÜ <span>✳</span></div>
+            </div>
+          </div>
+
+          <div class="stats-grid" aria-label="Pazar istatistikleri">
+            <article class="stat-card">
+              <span class="stat-icon mint">⌖</span>
+              <div>
+                <span class="stat-label">Listelenen pazar</span><strong id="stat-markets">—</strong
+                ><small id="stat-markets-note">Veriler yükleniyor</small>
+              </div>
+              <span class="stat-spark">⌁</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-icon amber">▦</span>
+              <div>
+                <span class="stat-label">Tezgâh</span><strong id="stat-stalls">—</strong
+                ><small>Platformdaki kayıtlar</small>
+              </div>
+              <span class="stat-spark amber-spark">⌁</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-icon blue">₺</span>
+              <div>
+                <span class="stat-label">Fiyat takibi</span><strong id="stat-products">—</strong
+                ><small>Paylaşılan ürün fiyatı</small>
+              </div>
+              <span class="stat-spark blue-spark">⌁</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-icon rose">♡</span>
+              <div>
+                <span class="stat-label">Kişisel listen</span><strong id="stat-saved">0</strong
+                ><small>Favorilerine ekle</small>
+              </div>
+              <span class="stat-spark rose-spark">⌁</span>
+            </article>
+          </div>
+
+          <section class="map-panel hidden" id="market-map-panel" aria-label="Pazar haritası">
+            <div class="map-toolbar">
+              <div>
+                <strong>İstanbul pazar haritası</strong>
+                <p>Koordinatı kayıtlı pazarlar haritada gösterilir.</p>
+              </div>
+              <button class="button button-secondary" id="map-location-btn" type="button">
+                Konumuma yakın pazarları bul
+              </button>
+            </div>
+            <div id="market-map" role="application" aria-label="Etkileşimli pazar haritası"></div>
+            <p class="map-footnote" id="map-status">
+              Harita hazırlanıyor… Konum paylaşımı isteğe bağlıdır.
+            </p>
+          </section>
+
+          <section class="section-block" id="market-section">
+            <div class="section-heading">
+              <div>
+                <div class="eyebrow small-eyebrow">SENİN İÇİN SEÇTİK</div>
+                <h2 id="section-title">
+                  Pazarları keşfet <span class="heading-count" id="result-count">—</span>
+                </h2>
+                <p id="section-description">İstanbul'un semt pazarlarını tek ekranda keşfet.</p>
+              </div>
+              <button class="text-button" id="clear-filters">
+                Filtreleri temizle <span>↺</span>
+              </button>
+            </div>
+            <div class="filter-panel">
+              <label class="search-box"
+                ><span>⌕</span
+                ><input
+                  id="search-input"
+                  type="search"
+                  placeholder="Pazar, ilçe veya mahalle ara..."
+                  autocomplete="off"
+                /><kbd>⌘ K</kbd></label
+              >
+              <label class="filter-select"
+                ><span>İlçe</span
+                ><select id="district-filter">
+                  <option value="">Tüm ilçeler</option>
+                </select></label
+              >
+              <label class="filter-select"
+                ><span>Kurulduğu gün</span
+                ><select id="day-filter">
+                  <option value="">Tüm günler</option>
+                  <option>Pazartesi</option>
+                  <option>Salı</option>
+                  <option>Çarşamba</option>
+                  <option>Perşembe</option>
+                  <option>Cuma</option>
+                  <option>Cumartesi</option>
+                  <option>Pazar</option>
+                </select></label
+              >
+              <label class="filter-select"
+                ><span>Özellik</span
+                ><select id="type-filter">
+                  <option value="">Tüm pazarlar</option>
+                  <option value="today">Bugün kurulanlar</option>
+                  <option value="sosyete">Sosyete pazarı</option>
+                  <option value="organik">Organik pazar</option>
+                </select></label
+              >
+            </div>
+            <div class="results-toolbar">
+              <span id="results-summary">Pazar kayıtları yükleniyor…</span
+              ><label class="sort-control"
+                >Sırala
+                <select id="sort-filter">
+                  <option value="name">İsme göre</option>
+                  <option value="rating">Puana göre</option>
+                  <option value="district">İlçeye göre</option>
+                </select></label
+              >
+            </div>
+            <div id="market-grid" class="market-grid">
+              <div class="loading-card">
+                <span class="loader"></span><strong>Pazarlar yükleniyor</strong>
+                <p>Güncel kayıtlar sunucudan alınıyor.</p>
+              </div>
+            </div>
+            <div id="empty-state" class="empty-state hidden">
+              <span>⌕</span>
+              <h3>Aramana uygun pazar bulamadık</h3>
+              <p>Filtreleri değiştirebilir veya aramanı kısaltabilirsin.</p>
+              <button class="button button-primary" id="empty-reset">Filtreleri sıfırla</button>
+            </div>
+            <div class="load-error hidden" id="load-error">
+              <strong>Verilere şu an ulaşılamıyor.</strong
+              ><span
+                >Sunucu ve MongoDB bağlantısını kontrol et. Gerçek kayıtlar gelmeden örnek verileri
+                gerçekmiş gibi göstermiyoruz.</span
+              ><button class="button button-secondary" id="retry-btn">Tekrar dene</button>
+            </div>
+          </section>
+
+          <section class="bottom-banner">
+            <div class="banner-mark">✳</div>
+            <div>
+              <strong>Mahallendeki pazarı biliyor musun?</strong>
+              <p>Bir sonraki alışverişini daha planlı yapmak için keşfetmeye başla.</p>
+            </div>
+            <button class="button button-light" id="banner-explore">
+              Pazarları keşfet <span>→</span>
+            </button>
+          </section>
+          <footer class="footer">
+            <span>© <span id="year"></span> Pazar Radar</span
+            ><span>Yerel pazarlar, daha bilinçli alışveriş.</span
+            ><a href="https://github.com/Nexora88/pazarradar" target="_blank" rel="noreferrer"
+              >Açık kaynak ↗</a
+            >
+          </footer>
         </section>
+      </main>
+    </div>
 
-        <section class="bottom-banner"><div class="banner-mark">✳</div><div><strong>Mahallendeki pazarı biliyor musun?</strong><p>Bir sonraki alışverişini daha planlı yapmak için keşfetmeye başla.</p></div><button class="button button-light" id="banner-explore">Pazarları keşfet <span>→</span></button></section>
-        <footer class="footer"><span>© <span id="year"></span> Pazar Radar</span><span>Yerel pazarlar, daha bilinçli alışveriş.</span><a href="https://github.com/Nexora88/pazarradar" target="_blank" rel="noreferrer">Açık kaynak ↗</a></footer>
+    <div class="modal-backdrop hidden" id="modal-backdrop">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" id="modal-close" aria-label="Kapat">×</button>
+        <div class="modal-brand">✳ <span>PazarRadar</span></div>
+        <h2 id="modal-title">Tekrar hoş geldin</h2>
+        <p id="modal-description">Favorilerini kaydetmek ve topluluğa katılmak için giriş yap.</p>
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-auth-mode="login">Giriş yap</button
+          ><button class="auth-tab" data-auth-mode="register">Hesap oluştur</button>
+        </div>
+        <form id="auth-form">
+          <label class="form-field hidden" id="username-field"
+            >Kullanıcı adı<input
+              name="username"
+              minlength="3"
+              maxlength="30"
+              autocomplete="username"
+              placeholder="kullaniciadi"
+          /></label>
+          <label class="form-field"
+            >E-posta<input
+              name="email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="ornek@eposta.com"
+          /></label>
+          <label class="form-field"
+            >Şifre<input
+              name="password"
+              type="password"
+              required
+              minlength="8"
+              autocomplete="current-password"
+              placeholder="En az 8 karakter"
+          /></label>
+          <div class="form-message hidden" id="auth-message" role="status"></div>
+          <button class="button button-primary full-button" id="auth-submit" type="submit">
+            Giriş yap <span>→</span>
+          </button>
+        </form>
+        <button class="logout-button hidden" id="logout-btn">Oturumu kapat</button>
+        <p class="modal-legal">
+          Bilgilerin yalnızca hesabın ve platform özellikleri için kullanılır.
+        </p>
       </section>
-    </main>
-  </div>
-
-  <div class="modal-backdrop hidden" id="modal-backdrop">
-    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <button class="modal-close" id="modal-close" aria-label="Kapat">×</button>
-      <div class="modal-brand">✳ <span>PazarRadar</span></div>
-      <h2 id="modal-title">Tekrar hoş geldin</h2><p id="modal-description">Favorilerini kaydetmek ve topluluğa katılmak için giriş yap.</p>
-      <div class="auth-tabs"><button class="auth-tab active" data-auth-mode="login">Giriş yap</button><button class="auth-tab" data-auth-mode="register">Hesap oluştur</button></div>
-      <form id="auth-form">
-        <label class="form-field hidden" id="username-field">Kullanıcı adı<input name="username" minlength="3" maxlength="30" autocomplete="username" placeholder="kullaniciadi"></label>
-        <label class="form-field">E-posta<input name="email" type="email" required autocomplete="email" placeholder="ornek@eposta.com"></label>
-        <label class="form-field">Şifre<input name="password" type="password" required minlength="8" autocomplete="current-password" placeholder="En az 8 karakter"></label>
-        <div class="form-message hidden" id="auth-message" role="status"></div>
-        <button class="button button-primary full-button" id="auth-submit" type="submit">Giriş yap <span>→</span></button>
-      </form>
-      <button class="logout-button hidden" id="logout-btn">Oturumu kapat</button>
-      <p class="modal-legal">Bilgilerin yalnızca hesabın ve platform özellikleri için kullanılır.</p>
-    </section>
-  </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-</body>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
 </html>

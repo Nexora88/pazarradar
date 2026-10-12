@@ -1,0 +1,37 @@
+name: Hata bildirimi
+description: Beklenmeyen davranışı bildir
+title: "[Hata]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Lütfen gizli anahtar, token, kişisel bilgi veya gerçek kullanıcı verisi paylaşmayın."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Sorun
+      description: Ne oldu?
+      placeholder: Beklenen ve gerçekleşen davranışı yazın.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Tekrarlama adımları
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Ortam
+      placeholder: "Windows 11, Node.js 22, tarayıcı sürümü"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Hata çıktısı (gizli bilgileri temizleyin)
+      render: text
+    validations:
+      required: false

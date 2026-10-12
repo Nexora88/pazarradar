@@ -1,47 +1,54 @@
 # Pazar Radar
 
-İstanbul'un semt pazarlarını keşfetmek, pazar günlerini ve adreslerini görüntülemek, esnaf tezgâhlarındaki ürün fiyatlarını takip etmek için geliştirilen web uygulaması.
+İstanbul semt pazarlarını keşfetmek, pazar günlerini ve adreslerini görmek, esnaf tezgâhlarındaki ürün fiyatlarını takip etmek ve toplulukla fiyatları doğrulamak için geliştirilen mobil uyumlu web uygulaması.
 
-**Durum:** Temel arayüz ve API entegrasyonu geliştirildi. Gerçek veriler için MongoDB, kullanıcı girişi için JWT ve fotoğraf yüklemeleri için isteğe bağlı Cloudinary yapılandırması gerekir.
+> **Veri doğruluğu:** Pazar ve fiyat listeleri veritabanındaki gerçek kayıtlardan beslenir. Veri yoksa uygulama örnek kayıtları gerçekmiş gibi göstermez. Harita yalnızca koordinatı kayıtlı pazarları işaretler.
 
 ## Özellikler
 
-- Koyu temalı, mobil ve masaüstü uyumlu Pazar Radar arayüzü
-- Pazarları ada, ilçe, mahalle ve adrese göre arama
-- İlçe ve pazar günü filtreleri; ada, puana veya ilçeye göre sıralama
-- Pazar detayları, çalışma saatleri ve koordinat varsa harita bağlantısı
-- Kullanıcı kaydı, oturum açma, profil görüntüleme ve parola değiştirme
-- Kullanıcının pazar favorilerini kaydetmesi
-- Esnaf tezgâhları, ürünler ve ürün fiyat geçmişi API'leri
-- Tezgâh yorumları ve puan ortalaması
-- Admin rolü ile pazar ekleme, güncelleme ve yayından kaldırma
-- İsteğe bağlı Cloudinary görsel yükleme
-- Helmet güvenlik başlıkları, istek sınırı, giriş doğrulama ve sunucu günlükleri
-- /api/health ile sunucu/veritabanı sağlık kontrolü
+- Koyu yeşil, responsive masaüstü/mobil arayüzü
+- Pazar adı, ilçe, mahalle, adres, gün, tür etiketi ve bugüne göre filtreleme
+- Leaflet/OpenStreetMap haritası, pazar pinleri ve yol tarifi bağlantısı
+- Kullanıcı açıkça izin verdiğinde konumuna göre en yakın pazarları bulma
+- Kullanıcı kaydı, JWT oturumu, parola değiştirme ve favoriler
+- Roller: `user`, `esnaf`, `denetci`, `admin`
+- Tezgâh, ürün, fiyat geçmişi ve yorum API'leri
+- Kullanıcı başına tek doğru/hatalı fiyat oyu; denetçi doğrulama durumu
+- Topluluk rozetleri: **Fiyat Doğrulayıcı**, **Pazar Gurmesi**
+- Cloudinary ile isteğe bağlı profil, tezgâh, ürün ve yorum görseli yükleme
+- Helmet güvenlik başlıkları, API/auth rate limiting, Joi doğrulaması, Winston/Morgan logları
+- MongoDB GeoJSON Point / 2dsphere ve arama indeksleri
+- İsteğe bağlı Redis önbelleği
+- PWA: yüklenebilir uygulama kabuğu ve daha önce görüntülenen herkese açık pazar/tezgâh yanıtlarının çevrimdışı önbelleği
+- Test, ESLint, Prettier ve GitHub Actions CI
+- İsteğe bağlı Render deploy workflow'u
 
 ## Gereksinimler
 
 - Node.js 20 veya üzeri
 - npm
-- MongoDB (yerel veya MongoDB Atlas)
-- Görsel yüklemek için isteğe bağlı Cloudinary hesabı
+- MongoDB 7+ (yerel servis veya MongoDB Atlas)
+- Cloudinary yalnızca görsel yüklemek için
+- Redis yalnızca Redis önbelleği kullanmak için
 
-## Yerel kurulum
+## Yerel kurulum (Windows, macOS ve Linux)
 
-1. Depoyu klonlayın ve proje klasörüne girin:
+1. Depoyu klonla:
 
    ```bash
    git clone https://github.com/Nexora88/pazarradar.git
    cd pazarradar
    ```
 
-2. Bağımlılıkları kurun:
+2. Bağımlılıkları yükle:
 
    ```bash
-   npm install
+   npm ci
    ```
 
-3. Ortam dosyası oluşturun. Windows PowerShell:
+3. Ortam dosyasını kopyala:
+
+   Windows PowerShell:
 
    ```powershell
    Copy-Item .env.example .env
@@ -53,130 +60,152 @@
    cp .env.example .env
    ```
 
-4. .env dosyasında MONGO_URI değerini çalışan MongoDB örneğinize göre ayarlayın. JWT_SECRET için en az 32 karakterli, benzersiz ve rastgele bir gizli değer kullanın. Gerçek anahtarları kaynak koduna veya GitHub'a eklemeyin.
+4. `.env` içinde `MONGO_URI` değerini çalışan MongoDB örneğine ayarla. Yerel MongoDB varsayılanı `mongodb://127.0.0.1:27017/pazar_radar` şeklindedir. Atlas için Atlas panelindeki **Connect → Drivers** bölümünden aldığın tam URI'yi kullan. Atlas kümesinin DNS/SRV kaydı çözümlenmiyorsa rastgele hostname üretme; Atlas panelindeki adresi ve ağ izinlerini doğrula.
 
-5. Geliştirme sunucusunu başlatın:
+5. `JWT_SECRET` için en az 32 karakterlik rastgele bir değer belirle. Örneğin Node.js ile:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+   ```
+
+6. Geliştirme sunucusunu çalıştır:
 
    ```bash
    npm run dev
    ```
 
-   Alternatif: npm start
+7. Tarayıcıda [http://localhost:3000](http://localhost:3000) adresini aç. Sağlık kontrolü: [http://localhost:3000/api/health](http://localhost:3000/api/health).
 
-6. Tarayıcıda http://localhost:3000 adresini açın. API sağlığını http://localhost:3000/api/health üzerinden kontrol edin.
+## Komutlar
+
+| Komut                  | Açıklama                                                           |
+| ---------------------- | ------------------------------------------------------------------ |
+| `npm start`            | Üretim başlangıcı                                                  |
+| `npm run dev`          | Node.js watch ile geliştirme                                       |
+| `npm run migrate:geo`  | Eski konum kayıtlarını GeoJSON'a dönüştürür ve indeksleri hazırlar |
+| `npm test`             | Sözdizimi, birim ve isteğe bağlı API entegrasyon testleri          |
+| `npm run lint`         | ESLint                                                             |
+| `npm run format`       | Prettier ile biçimlendirme                                         |
+| `npm run format:check` | Biçim kontrolü                                                     |
+| `npm run check`        | JavaScript sözdizimi kontrolü                                      |
+
+API entegrasyon testini MongoDB üzerinde çalıştırmak için **yalnızca test veritabanı** kullan:
+
+```powershell
+$env:RUN_DB_INTEGRATION="true"
+npm test
+```
+
+`RUN_DB_INTEGRATION` ayarı kapalıysa MongoDB kullanan API entegrasyon testi atlanır.
 
 ## Ortam değişkenleri
 
-| Değişken | Gerekli mi? | Açıklama |
-| --- | --- | --- |
-| PORT | Hayır | HTTP portu; varsayılan 3000 |
-| MONGO_URI | Evet | MongoDB bağlantı adresi |
-| JWT_SECRET | Evet | En az 32 karakterli imzalama anahtarı |
-| JWT_EXPIRES_IN | Hayır | JWT süresi; varsayılan 7d |
-| CORS_ORIGIN | Harici istemci için | İzinli origin adresleri; birden çok adres virgülle ayrılır |
-| CLOUDINARY_CLOUD_NAME | Görsel yükleme için | Cloudinary bulut adı |
-| CLOUDINARY_API_KEY | Görsel yükleme için | Cloudinary API anahtarı |
-| CLOUDINARY_API_SECRET | Görsel yükleme için | Cloudinary gizli anahtarı |
-| API_RATE_LIMIT | Hayır | IP başına 15 dakikadaki API istek sınırı |
-| DB_TIMEOUT_MS | Hayır | MongoDB bağlantı zaman aşımı |
-| LOG_LEVEL | Hayır | Winston günlük seviyesi |
+| Değişken                | Gerekli mi?         | Açıklama                                                                   |
+| ----------------------- | ------------------- | -------------------------------------------------------------------------- |
+| `PORT`                  | Hayır               | HTTP portu, varsayılan 3000                                                |
+| `MONGO_URI`             | Evet                | MongoDB bağlantı adresi                                                    |
+| `JWT_SECRET`            | Evet                | En az 32 karakterlik imzalama anahtarı                                     |
+| `JWT_EXPIRES_IN`        | Hayır               | Token ömrü, varsayılan `7d`                                                |
+| `CORS_ORIGIN`           | Harici istemci için | Virgülle ayrılmış izinli origin listesi                                    |
+| `API_RATE_LIMIT`        | Hayır               | Genel API için IP başına 15 dakikalık limit, varsayılan 180                |
+| `AUTH_RATE_LIMIT`       | Hayır               | Giriş/kayıt için IP başına 15 dakikalık limit, varsayılan 20               |
+| `DB_TIMEOUT_MS`         | Hayır               | MongoDB seçim zaman aşımı                                                  |
+| `LOG_LEVEL`             | Hayır               | Winston log seviyesi                                                       |
+| `REDIS_URL`             | Hayır               | Tanımlanırsa herkese açık pazar listeleri için kısa süreli Redis önbelleği |
+| `CLOUDINARY_CLOUD_NAME` | Görsel için         | Cloudinary bulut adı                                                       |
+| `CLOUDINARY_API_KEY`    | Görsel için         | Cloudinary API anahtarı                                                    |
+| `CLOUDINARY_API_SECRET` | Görsel için         | Cloudinary gizli anahtarı                                                  |
+
+Gizli anahtarları Git'e ekleme. `.env` Git tarafından yok sayılır; yalnızca `.env.example` paylaşılır.
 
 ## API özeti
 
-Tüm API yanıtları JSON biçimindedir. Korumalı uç noktalarda Authorization: Bearer <token> başlığı gerekir.
+Tüm yanıtlar JSON'dur. Korumalı uç noktalarda `Authorization: Bearer <token>` gerekir.
 
-### Sistem
+### Sistem ve pazarlar — `/api`
 
-| Metot | Uç nokta | Açıklama |
-| --- | --- | --- |
-| GET | /api/health | Sunucu ve MongoDB sağlık durumu |
+| Metot  | Uç nokta                                     | Açıklama                                    |
+| ------ | -------------------------------------------- | ------------------------------------------- |
+| GET    | `/health`                                    | HTTP/DB sağlık durumu; DB hazır değilse 503 |
+| GET    | `/pazar?page=1&limit=20`                     | Aktif pazarlar                              |
+| GET    | `/pazar?ilce=Kadıköy&gun=Cuma&search=...`    | İlçe/gün/metin filtreleri                   |
+| GET    | `/pazar?bugun=true&etiket=organik`           | Bugün kurulan veya etiketi eşleşen pazarlar |
+| GET    | `/pazar/yakin?lat=41.0&lng=29.0&radius=5000` | En yakın 50 pazar, mesafe metre             |
+| GET    | `/pazar/populer/list`                        | Öne çıkan pazarlar                          |
+| GET    | `/pazar/favoriler/listem`                    | Giriş yapan kullanıcının favorileri         |
+| GET    | `/pazar/:id`                                 | Pazar ayrıntısı                             |
+| POST   | `/pazar`                                     | Admin: pazar oluştur                        |
+| PUT    | `/pazar/:id`                                 | Admin: pazar güncelle                       |
+| DELETE | `/pazar/:id`                                 | Admin: yayından kaldır                      |
+| POST   | `/pazar/:id/favori`                          | Favoriye ekle/çıkar                         |
 
-### Kimlik doğrulama — /api/auth
+### Kimlik doğrulama — `/api/auth`
 
-| Metot | Uç nokta | Açıklama |
-| --- | --- | --- |
-| POST | /register | Hesap oluşturma: username, email, password |
-| POST | /login | Oturum açma; JWT döndürür |
-| GET | /me | Giriş yapan kullanıcı |
-| PUT | /change-password | oldPassword ve newPassword ile parola değişimi |
-| POST | /logout | İstemcinin token'ı silmesi için çıkış yanıtı |
+| Metot | Uç nokta           | Açıklama                                       |
+| ----- | ------------------ | ---------------------------------------------- |
+| POST  | `/register`        | `username`, `email`, `password` ile kayıt      |
+| POST  | `/login`           | JWT ile giriş                                  |
+| GET   | `/me`              | Giriş yapan kullanıcı ve rozetler              |
+| PUT   | `/change-password` | Parola değiştir                                |
+| PATCH | `/users/:id/role`  | Admin: rol ata; kişi kendi rolünü değiştiremez |
+| POST  | `/logout`          | İstemcinin token'ı silmesi için yanıt          |
 
-### Pazarlar — /api/pazar
+### Tezgâhlar — `/api/tezgah`
 
-| Metot | Uç nokta | Açıklama |
-| --- | --- | --- |
-| GET | /?page=1&limit=20 | Aktif pazarlar |
-| GET | /?ilce=Kadıköy&gun=Cuma&search=... | İlçe, gün ve metin filtreleri |
-| GET | /populer/list | Puan ve yorum sayısına göre öne çıkanlar |
-| GET | /favoriler/listem | Giriş yapan kullanıcının favorileri |
-| GET | /:id | Pazar detayı |
-| POST | / | Admin: pazar ekle |
-| PUT | /:id | Admin: pazar bilgilerini güncelle |
-| DELETE | /:id | Admin: pazarı silmeden yayından kaldır |
-| POST | /:id/favori | Favoriye ekle/çıkar |
+| Metot  | Uç nokta                     | Açıklama                                                           |
+| ------ | ---------------------------- | ------------------------------------------------------------------ |
+| GET    | `/?pazar=<id>&search=...`    | Aktif tezgâhlar                                                    |
+| GET    | `/:id`                       | Tezgâh ve pazar bilgisi                                            |
+| POST   | `/`                          | Esnaf: tezgâh oluştur                                              |
+| POST   | `/:id/urun`                  | Esnaf: ürün ve ilk fiyatı ekle                                     |
+| PUT    | `/:tezgahId/urun/:urunId`    | Esnaf: fiyat güncelle, geçmişe ekle                                |
+| GET    | `/:id/urun/:urunId/fiyatlar` | Fiyat geçmişi                                                      |
+| POST   | `/:id/urun/:urunId/oy`       | Giriş yapan kullanıcı: doğru/hatalı oyu                            |
+| POST   | `/:id/urun/:urunId/denetle`  | Denetçi/admin: doğrulama durumunu güncelle                         |
+| POST   | `/:id/yorum`                 | Giriş yapan kullanıcı: 1–5 puan, yorum ve en fazla 3 görsel URL'si |
+| GET    | `/:id/yorumlar`              | Yorumlar ve puan ortalaması                                        |
+| DELETE | `/:id`                       | Sahibi/admin: tezgâhı yayından kaldır                              |
 
-### Tezgâhlar — /api/tezgah
+### Görsel yükleme — `/api/upload`
 
-| Metot | Uç nokta | Açıklama |
-| --- | --- | --- |
-| GET | /?pazar=<id>&search=... | Aktif tezgâhlar |
-| GET | /:id | Tezgâh ve pazar bilgisi |
-| POST | / | Esnaf: tezgâh oluştur |
-| POST | /:id/urun | Esnaf: ürünü ve ilk fiyatı ekle |
-| PUT | /:tezgahId/urun/:urunId | Esnaf: fiyatı güncelle ve geçmişe ekle |
-| GET | /:id/urun/:urunId/fiyatlar | Ürün fiyat geçmişi |
-| POST | /:id/yorum | Giriş yapan kullanıcı: 1–5 puan ve yorum; günde en fazla 3 |
-| GET | /:id/yorumlar | Tezgâh yorumları |
-| DELETE | /:id | Sahibi/admin: tezgâhı yayından kaldır |
+`POST /profile`, `POST /tezgah`, `POST /urun` ve `POST /yorum` uç noktaları multipart/form-data içinde `image` alanını kabul eder. JPG, PNG ve WEBP kabul edilir; dosya sınırı 5 MB'dır. Cloudinary değişkenleri tanımlı değilse yükleme açık bir 503 yapılandırma hatası döndürür. Yorum kaydında yalnızca Cloudinary URL'leri kabul edilir.
 
-### Görsel yükleme — /api/upload
+## Roller ve ilk admin
 
-| Metot | Uç nokta | Açıklama |
-| --- | --- | --- |
-| POST | /profile | Kullanıcı profil fotoğrafı |
-| POST | /tezgah | Tezgâh görseli |
-| POST | /urun | Ürün görseli |
+- **user:** pazarları görüntüleme, favori ve yorum
+- **esnaf:** kendi tezgâhı/ürün/fiyat kayıtları
+- **denetci:** fiyat denetim durumunu yönetme
+- **admin:** pazar kayıtlarını ve kullanıcı rollerini yönetme
 
-Görsel istekleri multipart/form-data içinde image alanını kullanır. JPG, PNG ve WEBP kabul edilir; dosya sınırı 5 MB'dır. Görsel uç noktaları için Cloudinary değişkenleri yapılandırılmalıdır.
+Kayıt isteğinden rol yükseltmesi kabul edilmez. İlk admin hesabı, güvenilir yönetici tarafından veritabanında bir kez atanmalıdır; sonrasında admin `PATCH /api/auth/users/:id/role` ile rol atayabilir. Kimlik doğrulama middleware'i her korumalı istekte hesabın aktifliğini ve güncel rolünü veritabanından kontrol eder.
 
-## Roller
+## CI/CD
 
-- **user:** pazarları görüntüleme, favori ekleme ve yorum yazma
-- **esnaf:** kendi tezgâhını ve ürün/fiyat kayıtlarını yönetme
-- **admin:** pazar kayıtlarını yönetme
+GitHub Actions her push/PR'da testleri, lint ve format kontrolünü çalıştırır. CI, izole bir MongoDB hizmeti kullanarak pazar listeleme ve yakın pazar API entegrasyon testlerini de çalıştırır.
 
-Yeni kayıtlar güvenli biçimde user rolüyle oluşturulur. Esnaf/admin rolü yalnızca yetkili yönetici tarafından güvenli bir yönetim süreciyle atanmalıdır; istemciden gönderilen rol bilgisi kabul edilmez.
+Render dağıtımı için Render Web Service'i depoya bağla, gereken ortam değişkenlerini Render paneline ekle ve GitHub'da:
 
-## Kontroller
+1. Repository Secret `RENDER_DEPLOY_HOOK` oluştur.
+2. Repository Variable `RENDER_DEPLOY_ENABLED=true` ayarla.
 
-```bash
-npm test
-npm run check
-```
+Bu bilgiler yoksa otomatik deploy çalışmaz. Hiçbir gizli anahtar depoya commit edilmemelidir.
 
-Bu komutlar JavaScript dosyalarının sözdizimini denetler. Gerçek API entegrasyon testi için çalışan MongoDB ve yapılandırılmış .env gerekir.
+## PWA, harita ve önbellek
 
-## Yayına alma
+- Service worker uygulama kabuğunu ve daha önce görüntülenen herkese açık pazar/tezgâh GET yanıtlarını saklar. Çevrimdışı veriler eski olabilir; çevrimdışı fiyatlar güncel kabul edilmemelidir.
+- Harita yalnızca koordinatı kayıtlı pazarları gösterir. Konum izni isteğe bağlıdır; reddedilirse pazarlar normal arama ile kullanılabilir.
+- Redis isteğe bağlıdır. `REDIS_URL` boşsa önbellek devre dışıdır ve uygulama MongoDB'den çalışır.
+- Cloudinary isteğe bağlıdır; yerel geliştirmede görsel yüklemek için Cloudinary kimlik bilgileri gerekir.
 
-1. Node.js 20+ destekleyen bir Node.js servisi seçin.
-2. MongoDB Atlas veya erişilebilir bir MongoDB sağlayıcısı hazırlayın.
-3. Ortam değişkenlerini barındırma platformunun güvenli değişkenler bölümüne ekleyin; .env dosyasını yüklemeyin.
-4. Build komutu gerekmez; başlangıç komutu npm start şeklindedir.
-5. Sağlık kontrolü için /api/health yolunu kullanın.
-6. Harici bir web istemcisi kullanılacaksa CORS_ORIGIN değişkenini gerçek alan adıyla sınırlandırın.
-7. Cloudinary isteğe bağlıdır; anahtarlar yoksa görsel yükleme uç noktaları açık bir yapılandırma hatası döndürür.
+## Katkı, issue ve lisans
 
-## Veri doğruluğu
-
-Pazar listesi ve fiyatlar veritabanındaki kayıtlar üzerinden gösterilir. Uygulama, veri yokken örnek pazarları veya doğrulanmamış fiyatları gerçekmiş gibi sunmaz. Fiyatlar kullanıcı/esnaf bildirimlerine dayanır; güncellik ve doğruluk teyidi gerektirir.
+- Geliştirme standartları: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Hata/özellik formları: `.github/ISSUE_TEMPLATE/`
+- MIT lisansı: [LICENSE](LICENSE)
 
 ## Güvenlik notları
 
-- .env, token'lar ve Cloudinary anahtarları Git'e eklenmemelidir.
-- Üretimde HTTPS kullanın ve gizli anahtarları düzenli olarak yenileyin.
-- MongoDB kullanıcı hesabına yalnızca gerekli veritabanı izinlerini verin.
-- Gerçek kullanıcı verisiyle yayına almadan önce entegrasyon, yetkilendirme ve yedekleme kontrollerini tamamlayın.
-
-## Lisans
-
-MIT
+- Üretimde HTTPS kullan; JWT ve DB parolalarını düzenli yenile.
+- MongoDB hesabına yalnızca gerekli veritabanı izinlerini ver.
+- Üretim veritabanında test çalıştırma; CI ve entegrasyon testleri için ayrı bir test veritabanı kullan.
+- Pazar ve fiyatlar topluluk/esnaf bildirimlerine dayanır; oy sayısı tek başına resmi doğrulama anlamına gelmez.
