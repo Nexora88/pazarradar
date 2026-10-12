@@ -8,7 +8,7 @@
       name="description"
       content="İstanbul semt pazarlarını keşfet, pazar günlerini öğren ve güncel ürün fiyatlarını karşılaştır."
     />
-    <title>Pazar Radar — Şehrin pazarı avucunda</title>
+    <title>Street Bazaars — Şehrin pazarı avucunda</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,7 +35,7 @@
   <body>
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
-        <a class="brand" href="/" aria-label="Pazar Radar ana sayfa">
+        <a class="brand" href="/" aria-label="Street Bazaars ana sayfa">
           <span class="brand-mark"
             ><svg viewBox="0 0 44 44" aria-hidden="true">
               <path
@@ -83,7 +83,7 @@
             <span class="nav-icon">♡</span><span>Favorilerim</span>
           </button>
         </nav>
-        <div class="sidebar-label explore-label">PAZAR RADAR</div>
+        <div class="sidebar-label explore-label">STREET BAZAARS</div>
         <div class="sidebar-note">
           <span class="note-orb">✳</span>
           <div>
@@ -276,12 +276,18 @@
                 </select></label
               >
             </div>
+            <p class="source-note">
+              Pazar adları, adresleri ve kuruluş günleri
+              <a href="https://www.hal.gov.tr/Sayfalar/Pazar-Yerleri.aspx?sid=34" target="_blank" rel="noreferrer">Ticaret Bakanlığı Hal Kayıt Sistemi</a>
+              listesinden alınır. Kaynakta bulunmayan koordinat ve fiyatlar uydurulmaz.
+            </p>
             <div id="market-grid" class="market-grid">
               <div class="loading-card">
                 <span class="loader"></span><strong>Pazarlar yükleniyor</strong>
                 <p>Güncel kayıtlar sunucudan alınıyor.</p>
               </div>
             </div>
+            <div id="market-pagination" class="market-pagination hidden" aria-label="Pazar sayfaları"></div>
             <div id="empty-state" class="empty-state hidden">
               <span>⌕</span>
               <h3>Aramana uygun pazar bulamadık</h3>
@@ -308,7 +314,7 @@
             </button>
           </section>
           <footer class="footer">
-            <span>© <span id="year"></span> Pazar Radar</span
+            <span>© <span id="year"></span> Street Bazaars</span
             ><span>Yerel pazarlar, daha bilinçli alışveriş.</span
             ><a href="https://github.com/Nexora88/pazarradar" target="_blank" rel="noreferrer"
               >Açık kaynak ↗</a
@@ -321,7 +327,7 @@
     <div class="modal-backdrop hidden" id="modal-backdrop">
       <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <button class="modal-close" id="modal-close" aria-label="Kapat">×</button>
-        <div class="modal-brand">✳ <span>PazarRadar</span></div>
+        <div class="modal-brand">✳ <span>Street Bazaars</span></div>
         <h2 id="modal-title">Tekrar hoş geldin</h2>
         <p id="modal-description">Favorilerini kaydetmek ve topluluğa katılmak için giriş yap.</p>
         <div class="auth-tabs">
