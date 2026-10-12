@@ -1,4 +1,4 @@
-const CACHE_NAME = "pazar-radar-shell-v1";
+const CACHE_NAME = "street-bazaars-shell-v2";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -25,7 +25,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => ![CACHE_NAME, "pazar-radar-public-data-v1"].includes(key))
+            .filter((key) => ![CACHE_NAME, "street-bazaars-public-data-v2"].includes(key))
             .map((key) => caches.delete(key)),
         ),
       )
@@ -48,7 +48,7 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();
-            caches.open("pazar-radar-public-data-v1").then((cache) => cache.put(request, copy));
+            caches.open("street-bazaars-public-data-v1").then((cache) => cache.put(request, copy));
             return response;
           }
           if (response.status >= 500) throw new Error("API geçici olarak kullanılamıyor");
@@ -58,7 +58,7 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(request);
           if (cached) {
             const headers = new Headers(cached.headers);
-            headers.set("X-Pazar-Radar-Cache", "stale-offline");
+            headers.set("X-Street-Bazaars-Cache", "stale-offline");
             return new Response(await cached.arrayBuffer(), { status: cached.status, headers });
           }
           return new Response(
