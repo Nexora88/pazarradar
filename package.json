@@ -1,7 +1,7 @@
 {
-  "name": "pazar-radar",
+  "name": "street-bazaars",
   "version": "1.1.0",
-  "description": "İstanbul semt pazarlarını keşfetme ve ürün fiyatlarını takip etme platformu.",
+  "description": "Explore Istanbul street markets, market days and verified product prices.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,7 +11,9 @@
     "test": "npm run check && node --test",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{js,cjs,json,md,html,css,yml,yaml,webmanifest}\"",
-    "format:check": "prettier --check \"**/*.{js,cjs,json,md,html,css,yml,yaml,webmanifest}\""
+    "format:check": "prettier --check \"**/*.{js,cjs,json,md,html,css,yml,yaml,webmanifest}\"",
+    "data:sync:istanbul": "node scripts/sync-istanbul-markets.js",
+    "data:seed": "node scripts/seed-istanbul.js"
   },
   "keywords": [
     "istanbul",
