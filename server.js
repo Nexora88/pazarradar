@@ -121,7 +121,7 @@ app.get("/api/health", (req, res) => {
   res.status(ready ? 200 : 503).json({
     success: ready,
     status: ready ? "ok" : "degraded",
-    app: "Pazar Radar",
+    app: "Street Bazaars",
     database,
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
@@ -176,7 +176,7 @@ async function start() {
   initCache(logger);
   server.listen(port, () =>
     logger.info({
-      message: "Pazar Radar web sunucusu hazır.",
+      message: "Street Bazaars web sunucusu hazır.",
       port,
       environment: process.env.NODE_ENV || "development",
     }),
