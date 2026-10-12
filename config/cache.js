@@ -25,7 +25,7 @@ function initCache(logger) {
 function cacheResponse(ttlSeconds = 30) {
   return async function optionalCache(req, res, next) {
     if (req.method !== "GET" || !client?.isReady) return next();
-    const key = "pazar-radar:" + req.originalUrl;
+    const key = "street-bazaars:" + req.originalUrl;
     try {
       const cached = await client.get(key);
       if (cached) {
