@@ -283,7 +283,10 @@
       return;
     }
     const start = (state.page - 1) * state.pageSize;
-    $("#market-grid").innerHTML = list.slice(start, start + state.pageSize).map(renderMarketCard).join("");
+    $("#market-grid").innerHTML = list
+      .slice(start, start + state.pageSize)
+      .map(renderMarketCard)
+      .join("");
     if (!list.length) $("#market-grid").innerHTML = "";
     renderPagination(list.length);
     renderStats();
@@ -313,7 +316,7 @@
       Math.min(pageCount, state.page + 1) +
       '"' +
       (state.page === pageCount ? " disabled" : "") +
-      '>Sonraki →</button>';
+      ">Sonraki →</button>";
   }
 
   function renderMarketCard(market) {

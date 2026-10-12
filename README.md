@@ -210,7 +210,6 @@ Bu bilgiler yoksa otomatik deploy çalışmaz. Hiçbir gizli anahtar depoya comm
 - Üretim veritabanında test çalıştırma; CI ve entegrasyon testleri için ayrı bir test veritabanı kullan.
 - Pazar ve fiyatlar topluluk/esnaf bildirimlerine dayanır; oy sayısı tek başına resmi doğrulama anlamına gelmez.
 
-
 ## İstanbul veri paketi
 
 İlk bölge yalnızca İstanbul'dur. Resmî T.C. Ticaret Bakanlığı Hal Kayıt Sistemi listesinden 538 pazar kaydı içeren `data/istanbul-markets.json` snapshot'ı oluşturulur. Ad, ilçe, semt, adres ve kuruluş günleri kaynak kayıtlarından alınır. Kaynakta bulunmayan koordinatlar ve ürün fiyatları uydurulmaz.

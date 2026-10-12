@@ -157,7 +157,9 @@ router.post("/", auth, admin, async (req, res) => {
   try {
     const data = pick(req.body);
     if (data.il && data.il !== "İstanbul") {
-      return res.status(400).json({ success: false, message: "Şimdilik yalnızca İstanbul pazarları eklenebilir." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Şimdilik yalnızca İstanbul pazarları eklenebilir." });
     }
     if (!data.ad || !data.ilce || !data.adres) {
       return res
@@ -178,7 +180,9 @@ router.put("/:id", auth, admin, async (req, res) => {
     }
     const data = pick(req.body);
     if (data.il && data.il !== "İstanbul") {
-      return res.status(400).json({ success: false, message: "Şimdilik yalnızca İstanbul pazarları eklenebilir." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Şimdilik yalnızca İstanbul pazarları eklenebilir." });
     }
     for (const field of ["ortalamaPuan", "toplamYorum", "fiyatEndeksi"]) delete data[field];
     const market = await Pazar.findById(req.params.id);
@@ -196,7 +200,11 @@ router.delete("/:id", auth, admin, async (req, res) => {
     if (!validId(req.params.id)) {
       return res.status(400).json({ success: false, message: "Pazar kimliği geçersiz." });
     }
-    const market = await Pazar.findOneAndUpdate({ _id: req.params.id, il: "İstanbul" }, { aktif: false }, { new: true });
+    const market = await Pazar.findOneAndUpdate(
+      { _id: req.params.id, il: "İstanbul" },
+      { aktif: false },
+      { new: true },
+    );
     if (!market) return res.status(404).json({ success: false, message: "Pazar bulunamadı." });
     res.json({ success: true, message: "Pazar yayından kaldırıldı." });
   } catch (error) {
@@ -209,7 +217,9 @@ router.post("/:id/favori", auth, async (req, res) => {
     if (!validId(req.params.id)) {
       return res.status(400).json({ success: false, message: "Pazar kimliği geçersiz." });
     }
-    const market = await Pazar.findOne({ _id: req.params.id, aktif: true, il: "İstanbul" }).select("_id");
+    const market = await Pazar.findOne({ _id: req.params.id, aktif: true, il: "İstanbul" }).select(
+      "_id",
+    );
     if (!market) return res.status(404).json({ success: false, message: "Pazar bulunamadı." });
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı." });
