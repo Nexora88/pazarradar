@@ -55,8 +55,9 @@ function parseOfficialTable(html) {
     );
     if (cells.length < 7) continue;
     const [name, type, address, city, district, neighborhood, dayText] = cells;
-    if (normalize(city).toLocaleLowerCase("tr-TR") !== "istanbul" || !name || !district || !address)
+    if (normalize(city).toLocaleLowerCase("tr-TR") !== "istanbul" || !name || !district || !address) {
       continue;
+    }
     const gunler = [
       ...new Set(
         dayText
@@ -93,10 +94,11 @@ function parseOfficialTable(html) {
     });
   }
   const unique = [...new Map(markets.map((market) => [market.sourceKey, market])).values()];
-  if (unique.length < 400)
+  if (unique.length < 400) {
     throw new Error(
       `İstanbul kayıt sayısı beklenenden az: ${unique.length}; kaynak değişmiş olabilir.`,
     );
+  }
   return unique;
 }
 
