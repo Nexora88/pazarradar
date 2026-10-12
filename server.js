@@ -1,169 +1,146 @@
-// ======================================================
-// İstanbul Pazar
-// Server.js
-// Bölüm 1A
-// Temel Altyapı + Güvenlik + MongoDB
-// ======================================================
-
 require("dotenv").config();
 
-const express = require("express");
+const path = require("path");
+const fs = require("fs");
 const http = require("http");
-const connectDB = require('./config/db');
+const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const winston = require("winston");
-const { Server } = require("socket.io");
+const mongoose = require("mongoose");
+const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const pazarRoutes = require("./routes/pazar");
-const tezgahRoutes = require('./routes/tezgah');
-const uploadRoutes = require('./routes/upload');
-
+const tezgahRoutes = require("./routes/tezgah");
+const uploadRoutes = require("./routes/upload");
 
 const app = express();
-connectDB();
 const server = http.createServer(app);
-
-// ======================================================
-// SOCKET.IO
-// ======================================================
-
-const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
-});
-
-// ======================================================
-// LOGGER
-// ======================================================
+const port = Number(process.env.PORT) || 3000;
+const publicDir = path.join(__dirname, "public");
+const logDir = path.join(__dirname, "logs");
+fs.mkdirSync(logDir, { recursive: true });
 
 const logger = winston.createLogger({
-
-    level: "info",
-
-    format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.printf(({ level, message, timestamp }) => {
-            return `[${timestamp}] ${level.toUpperCase()} : ${message}`;
-        })
-    ),
-
-    transports: [
-
-        new winston.transports.Console(),
-
-        new winston.transports.File({
-            filename: "logs/error.log",
-            level: "error"
-        }),
-
-        new winston.transports.File({
-            filename: "logs/combined.log"
-        })
-
-    ]
-
+  level: process.env.LOG_LEVEL || "info",
+  format: winston.format.combine(winston.format.timestamp(), winston.format.errors({ stack: true }), winston.format.json()),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: path.join(logDir, "error.log"), level: "error" }),
+    new winston.transports.File({ filename: path.join(logDir, "combined.log") })
+  ]
 });
 
-// ======================================================
-// MIDDLEWARE
-// ======================================================
-
-app.use(cors());
-
-app.use(helmet());
-
+const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",").map(value => value.trim()).filter(Boolean);
+app.disable("x-powered-by");
+app.set("trust proxy", process.env.TRUST_PROXY === "true" ? 1 : false);
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      frameSrc: ["'self'", "https://www.openstreetmap.org"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null
+    }
+  }
+}));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Bu kaynaktan erişime izin verilmiyor."));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  maxAge: 86400
+}));
 app.use(compression());
-
-app.use(express.json({
-    limit: "10mb"
-}));
-
-app.use(express.urlencoded({
-    extended: true,
-    limit: "10mb"
-}));
-
-
-app.use(morgan("dev"));
-
-app.use(express.static("public"));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: {
-        success: false,
-        message: "Çok fazla istek gönderdiniz. Lütfen biraz bekleyin."
-    }
+  windowMs: 15 * 60 * 1000,
+  limit: Number(process.env.API_RATE_LIMIT) || 180,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { success: false, message: "Çok fazla istek gönderildi. Lütfen biraz sonra tekrar deneyin." }
 });
 
-app.use(apiLimiter);
+app.get("/api/health", (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const database = ({ 0: "disconnected", 1: "connected", 2: "connecting", 3: "disconnecting" })[dbState] || "unknown";
+  const ready = dbState === 1;
+  res.status(ready ? 200 : 503).json({
+    success: ready, status: ready ? "ok" : "degraded", app: "Pazar Radar",
+    database, uptimeSeconds: Math.floor(process.uptime()), timestamp: new Date().toISOString()
+  });
+});
 
+app.use("/api", apiLimiter);
+app.use("/api", (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ success: false, message: "Veritabanı bağlantısı hazır değil. Lütfen biraz sonra tekrar deneyin." });
+  }
+  next();
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/pazar", pazarRoutes);
 app.use("/api/tezgah", tezgahRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use(express.static(publicDir, { extensions: ["html"], maxAge: process.env.NODE_ENV === "production" ? "1h" : 0 }));
 
-// ======================================================
-// ENV KONTROL
-// ======================================================
+app.get("/", (req, res) => res.sendFile(path.join(publicDir, "index.html")));
+app.use("/api", (req, res) => res.status(404).json({ success: false, message: "API uç noktası bulunamadı." }));
+app.use((req, res) => res.status(404).sendFile(path.join(publicDir, "index.html")));
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  if (error?.type === "entity.too.large") return res.status(413).json({ success: false, message: "İstek boyutu sınırı aşıldı." });
+  if (error?.message === "Bu kaynaktan erişime izin verilmiyor.") return res.status(403).json({ success: false, message: error.message });
+  logger.error({ message: error.message, path: req.path, method: req.method });
+  res.status(500).json({ success: false, message: "Sunucuda beklenmeyen bir hata oluştu." });
+});
 
-if (!process.env.JWT_SECRET) {
-
-    logger.error("JWT_SECRET bulunamadı!");
-
-    process.exit(1);
-
+let retryTimer;
+async function start() {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    logger.error("JWT_SECRET tanımlı olmalı ve en az 32 karakter içermelidir.");
+    process.exitCode = 1;
+    return;
+  }
+  server.listen(port, () => logger.info({ message: "Pazar Radar web sunucusu hazır.", port, environment: process.env.NODE_ENV || "development" }));
+  try {
+    await connectDB();
+  } catch (error) {
+    logger.error({ message: "MongoDB bağlantısı kurulamadı. Arayüz açık kalacak; API verileri için MONGO_URI ve ağ erişimini kontrol edin.", detail: error.message });
+    retryTimer = setInterval(async () => {
+      if (mongoose.connection.readyState === 1) return clearInterval(retryTimer);
+      try {
+        await connectDB();
+        clearInterval(retryTimer);
+      } catch (retryError) {
+        logger.warn({ message: "MongoDB yeniden bağlantısı başarısız; yeniden denenecek.", detail: retryError.message });
+      }
+    }, 30000);
+    retryTimer.unref();
+  }
 }
 
-if (!process.env.MONGO_URI) {
-
-    logger.warn("MONGO_URI bulunamadı.");
-
-    logger.warn("Local MongoDB kullanılacak.");
-
-}
-
-// ======================================================
-// MONGODB
-// ======================================================
-
-
-app.get("/api/test", (req, res) => {
-    res.json({
-        success: true,
-        message: "İstanbul Pazar API çalışıyor 🚀"
-    });
+server.on("error", error => {
+  logger.error({ message: "HTTP sunucusu başlatılamadı.", detail: error.message });
+  process.exitCode = 1;
 });
+process.on("unhandledRejection", error => logger.error({ message: "İşlenmemiş promise hatası.", detail: error?.message || String(error) }));
+process.on("SIGTERM", () => { if (retryTimer) clearInterval(retryTimer); server.close(() => mongoose.disconnect().finally(() => process.exit(0))); });
+process.on("SIGINT", () => { if (retryTimer) clearInterval(retryTimer); server.close(() => mongoose.disconnect().finally(() => process.exit(0))); });
 
-// ====================== ANA SAYFA ======================
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    app: "İstanbul Pazar",
-    version: "1.0.0",
-    status: "API Çalışıyor"
-  });
-});
-
-app.use((err, req, res, next) => {
-    logger.error(err.stack);
-
-    res.status(500).json({
-        success: false,
-        message: "Sunucu hatası oluştu."
-    });
-});
-const PORT = process.env.PORT || 3000;
-
-server.listen(PORT, () => {
-    logger.info(`🚀 Server ${PORT} portunda çalışıyor.`);
-});
+if (require.main === module) start();
+module.exports = { app, server, start };

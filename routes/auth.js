@@ -1,283 +1,75 @@
 const express = require("express");
-const router = express.Router();
-
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
-
 const User = require("../models/User");
 const auth = require("../middleware/auth");
-
-// ======================
-// VALIDATION
-// ======================
+const router = express.Router();
 
 const registerSchema = Joi.object({
-    username: Joi.string().min(3).max(30).required(),
-
-    email: Joi.string().email().required(),
-
-    password: Joi.string().min(6).max(100).required(),
-
-    adSoyad: Joi.string().allow("", null),
-
-    telefon: Joi.string().allow("", null)
+  username: Joi.string().trim().min(3).max(30).pattern(/^[\p{L}\p{N}_.-]+$/u).required(),
+  email: Joi.string().trim().email().max(254).required(),
+  password: Joi.string().min(8).max(100).required(),
+  adSoyad: Joi.string().trim().max(100).allow(""),
+  telefon: Joi.string().trim().max(30).allow("")
 });
-
 const loginSchema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().required()
+  email: Joi.string().trim().email().max(254).required(),
+  password: Joi.string().min(1).max(100).required()
 });
-
-// ======================
-// KAYIT OL
-// ======================
+const fail = (res, error) => {
+  if (error?.code === 11000) return res.status(409).json({ success: false, message: "Bu e-posta veya kullanıcı adı zaten kayıtlı." });
+  console.error("[auth]", error?.message || error);
+  return res.status(500).json({ success: false, message: "İşlem sırasında sunucu hatası oluştu." });
+};
+const publicUser = user => ({ id: user._id, username: user.username, email: user.email, role: user.role, adSoyad: user.adSoyad, profilFoto: user.profilFoto });
 
 router.post("/register", async (req, res) => {
-
-    try {
-
-        const { error } = registerSchema.validate(req.body);
-
-        if (error) {
-            return res.status(400).json({
-                success: false,
-                message: error.details[0].message
-            });
-        }
-
-        const {
-            username,
-            email,
-            password,
-            adSoyad,
-            telefon
-        } = req.body;
-
-        const userExists = await User.findOne({
-            $or: [
-                { username },
-                { email }
-            ]
-        });
-
-        if (userExists) {
-            return res.status(400).json({
-                success: false,
-                message: "Bu kullanıcı zaten kayıtlı."
-            });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            username,
-            email,
-            password: hashedPassword,
-            adSoyad,
-            telefon
-        });
-
-        res.status(201).json({
-            success: true,
-            message: "Kayıt başarılı."
-        });
-
-    } catch (err) {
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-
-    }
-
+  const { error, value } = registerSchema.validate(req.body, { abortEarly: true, stripUnknown: true });
+  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  try {
+    const username = value.username.trim();
+    const email = value.email.toLowerCase().trim();
+    const exists = await User.findOne({ $or: [{ username }, { email }] }).select("_id");
+    if (exists) return res.status(409).json({ success: false, message: "Bu e-posta veya kullanıcı adı zaten kayıtlı." });
+    const user = await User.create({ username, email, password: await bcrypt.hash(value.password, 12), adSoyad: value.adSoyad || "", telefon: value.telefon || "" });
+    res.status(201).json({ success: true, message: "Hesap oluşturuldu. Şimdi giriş yapabilirsiniz.", user: publicUser(user) });
+  } catch (error) { fail(res, error); }
 });
-
-// ======================
-// GİRİŞ YAP
-// ======================
 
 router.post("/login", async (req, res) => {
-
-    try {
-
-        const { error } = loginSchema.validate(req.body);
-
-        if (error) {
-            return res.status(400).json({
-                success: false,
-                message: error.details[0].message
-            });
-        }
-
-        const { email, password } = req.body;
-
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "E-posta veya şifre hatalı."
-            });
-        }
-
-        if (!user.aktif) {
-            return res.status(403).json({
-                success: false,
-                message: "Hesabınız pasif durumda."
-            });
-        }
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (!passwordMatch) {
-            return res.status(401).json({
-                success: false,
-                message: "E-posta veya şifre hatalı."
-            });
-        }
-
-        const token = jwt.sign(
-            {
-                id: user._id,
-                username: user.username,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: "7d"
-            }
-        );
-
-        res.json({
-            success: true,
-            message: "Giriş başarılı.",
-            token,
-            user: {
-                id: user._id,
-                username: user.username,
-                email: user.email,
-                role: user.role,
-                adSoyad: user.adSoyad,
-                profilFoto: user.profilFoto
-            }
-        });
-
-    } catch (err) {
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-
-    }
-
+  const { error, value } = loginSchema.validate(req.body, { abortEarly: true, stripUnknown: true });
+  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  try {
+    const user = await User.findOne({ email: value.email.toLowerCase().trim() });
+    if (!user || !user.aktif || !(await bcrypt.compare(value.password, user.password))) return res.status(401).json({ success: false, message: "E-posta veya şifre hatalı." });
+    if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) return res.status(503).json({ success: false, message: "Kimlik doğrulama yapılandırması hazır değil." });
+    const token = jwt.sign({ id: String(user._id), username: user.username, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d", issuer: "pazar-radar" });
+    res.json({ success: true, message: "Giriş başarılı.", token, user: publicUser(user) });
+  } catch (error) { fail(res, error); }
 });
-
-// ======================
-// PROFİL BİLGİLERİ
-// ======================
 
 router.get("/me", auth, async (req, res) => {
-
-    try {
-
-        const user = await User.findById(req.user.id).select("-password");
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "Kullanıcı bulunamadı."
-            });
-        }
-
-        res.json({
-            success: true,
-            user
-        });
-
-    } catch (err) {
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-
-    }
-
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı." });
+    res.json({ success: true, user });
+  } catch (error) { fail(res, error); }
 });
-
-// ======================
-// ŞİFRE DEĞİŞTİR
-// ======================
 
 router.put("/change-password", auth, async (req, res) => {
-
-    try {
-
-        const { oldPassword, newPassword } = req.body;
-
-        if (!oldPassword || !newPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "Eski ve yeni şifre zorunludur."
-            });
-        }
-
-        if (newPassword.length < 6) {
-            return res.status(400).json({
-                success: false,
-                message: "Yeni şifre en az 6 karakter olmalıdır."
-            });
-        }
-
-        const user = await User.findById(req.user.id);
-
-        const match = await bcrypt.compare(oldPassword, user.password);
-
-        if (!match) {
-            return res.status(401).json({
-                success: false,
-                message: "Eski şifre yanlış."
-            });
-        }
-
-        user.password = await bcrypt.hash(newPassword, 10);
-
-        await user.save();
-
-        res.json({
-            success: true,
-            message: "Şifre başarıyla değiştirildi."
-        });
-
-    } catch (err) {
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-
-    }
-
+  const schema = Joi.object({ oldPassword: Joi.string().required(), newPassword: Joi.string().min(8).max(100).required() });
+  const { error, value } = schema.validate(req.body);
+  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: "Kullanıcı bulunamadı." });
+    if (!(await bcrypt.compare(value.oldPassword, user.password))) return res.status(401).json({ success: false, message: "Mevcut şifre hatalı." });
+    user.password = await bcrypt.hash(value.newPassword, 12);
+    await user.save();
+    res.json({ success: true, message: "Şifreniz güncellendi." });
+  } catch (error) { fail(res, error); }
 });
 
-// ======================
-// ÇIKIŞ
-// ======================
-
-router.post("/logout", auth, (req, res) => {
-
-    res.json({
-        success: true,
-        message: "Çıkış başarılı. Token istemci tarafından silinmelidir."
-    });
-
-});
-
-// ======================
-// EXPORT
-// ======================
-
+router.post("/logout", auth, (req, res) => res.json({ success: true, message: "Çıkış isteği alındı. Oturum belirteci istemciden silinmelidir." }));
 module.exports = router;

@@ -1,20 +1,16 @@
 const mongoose = require("mongoose");
 
-const connectDB = async () => {
-    try {
-        console.log("MONGO_URI:", process.env.MONGO_URI);
+async function connectDB() {
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error("MONGO_URI ortam değişkeni tanımlı değil.");
 
-        await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 10000
-        });
-
-        console.log("✅ MongoDB bağlantısı başarılı");
-    } catch (err) {
-        console.error("❌ HATA ADI:", err.name);
-        console.error("❌ HATA MESAJI:", err.message);
-        console.error(err);
-        process.exit(1);
-    }
-};
+  mongoose.set("strictQuery", true);
+  await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: Number(process.env.DB_TIMEOUT_MS) || 10000,
+    autoIndex: process.env.NODE_ENV !== "production"
+  });
+  console.info("[database] MongoDB bağlantısı hazır.");
+  return mongoose.connection;
+}
 
 module.exports = connectDB;
