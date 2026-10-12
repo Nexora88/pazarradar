@@ -40,3 +40,12 @@ jobs:
         run: npm run lint
       - name: Check formatting
         run: npm run format:check
+      - name: Package downloadable source
+        run: git archive --format=zip --output=street-bazaars-source.zip HEAD
+      - name: Upload downloadable source
+        uses: actions/upload-artifact@v4
+        with:
+          name: street-bazaars-source
+          path: street-bazaars-source.zip
+          if-no-files-found: error
+          retention-days: 30
