@@ -14,7 +14,7 @@ module.exports = async function auth(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-      issuer: "pazar-radar",
+      issuer: "street-bazaars",
       algorithms: ["HS256"],
     });
     const user = await User.findById(decoded.id).select("_id username role aktif");
