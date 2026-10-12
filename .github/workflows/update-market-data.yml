@@ -29,7 +29,15 @@ jobs:
         with:
           node-version: 22
       - name: Refresh official Istanbul market snapshot
-        run: npm run data:sync:istanbul
+        run: |
+          if npm run data:sync:istanbul; then
+            echo "Official market data refreshed."
+          elif [ -s data/istanbul-markets.json ]; then
+            echo "::warning::Official source unavailable; retaining the last known snapshot."
+          else
+            echo "::error::No local market snapshot and official source is unavailable."
+            exit 1
+          fi
       - name: Commit snapshot when it changed
         run: |
           git config user.name "github-actions[bot]"
